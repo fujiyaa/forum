@@ -1,11 +1,356 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>forum\offtopic\zen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #121212;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            flex-direction: column;
+        }
+        .scroll-container {
+            width: 100%;
+            max-width: 700px;
+            height: 100vh;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            position: relative;
+            mask-image: linear-gradient(to bottom, transparent, white 10%, white 90%, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, transparent, white 10%, white 90%, transparent);
+            scroll-behavior: smooth;
+            margin-bottom: 20px;
+        }
+
+        .text {
+            font-size: 1.5rem;
+            line-height: 2rem;
+            text-align: left;
+            white-space: pre-line;
+            padding: 20px;
+            opacity: 0;
+            animation: appearLeftToRight 1s forwards;
+        }
+
+        @keyframes appearLeftToRight {
+            0% {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes appearRightToLeft {
+            0% {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+        .text {
+            font-size: 1.5rem;
+            line-height: 2rem;
+            text-align: left;
+            white-space: pre-line;
+            padding: 20px;
+        }
+        .highlighted {
+          color: #969696;
+          font-size: small;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            width:auto;
+            max-width: 600px;
+            margin-top: 0px;
+            font-size: 1.5rem;
+            padding: 5px;
+        }
+        .controls button {
+            background-color: transparent;
+            color: #727272;
+            border-radius: 10px 10px 10px 10px;
+            border: none;
+            padding: 1px 7px;
+            cursor: pointer;
+            font-size: 2rem;
+        }
+        .controls button {
+            transition: background-color 0.5s ease; /* Добавляем плавную анимацию для фона */
+        }
+        .controls button:hover {
+            background-color: rgb(72, 72, 72);
+            color: rgb(170, 170, 170);
+        }
+        .file-name {
+            color: rgb(72, 72, 72);
+            font-size: 1.4rem;
+            align-self: center;            
+            padding: 10px 14px;
+        }
+        
+    </style>
+    <style>
+        body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(45deg, #2d404e, #291a21, #554f4d, #1a1a1a, #3d3d3d);
+        background-size: 600% 600%;
+        animation: gradientAnimation 80s ease infinite;
+        }
+
+        @keyframes gradientAnimation {
+        0% {
+            background-position: 0% 50%;
+        }
+        25% {
+            background-position: 100% 50%;
+        }
+        50% {
+            background-position: 100% 0%;
+        }
+        75% {
+            background-position: 0% 0%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+        }
+
+    </style>
+     
+</head>
 <body>
+    <div class="scroll-container" id="scroll-container">
+        <div id="text-container" class="text">оффтоп - часть 1 (начало).txt...
 
-<h1>My First Heading</h1>
+        </div>
+    </div>
 
-<p>My first paragraph.</p>
+    <div class="controls">
+        <button id="prevBtn">◀</button>
+        <span id="file-name" class="file-name">оффтоп - часть 1 (начало).txt</span>
+        <button id="nextBtn">▶</button>        
+    </div>
 
+    <script>
+        const CHUNK_SIZE = 1000; // Размер части, которую будем загружать за один раз
+        let offset = 0; // Смещение в файле
+        let isLoading = false; // Проверка, не загружается ли файл в данный момент
+
+        // Список файлов
+        const files = [
+            'оффтоп - часть 1 (начало).txt',
+            'оффтоп - часть 2.txt',
+            'оффтоп - часть 2 (спинофф).txt',
+            'оффтоп - часть 3.txt',
+            'оффтоп - часть 4.txt',
+            'оффтоп - часть 5.txt',
+            'оффтоп - часть 5 (спинофф).txt',
+            'оффтоп - часть 6.txt',
+            'оффтоп - часть 7.txt',
+            'оффтоп - часть 8.txt',
+            'оффтоп - часть 9.txt',
+            'оффтоп - часть 10.txt',
+            'оффтоп - часть 11.txt',
+            'оффтоп - часть 12.txt',
+            'оффтоп - часть 13.txt',
+            'оффтоп - часть 14.txt',
+            'оффтоп - часть 15.txt',
+            'оффтоп - часть 16.txt',
+            'оффтоп - часть 17.txt',
+            'оффтоп - часть 18 (последняя).txt'
+        ];
+        let currentFileIndex = 0; // Индекс текущего файла
+
+        // Функция подгрузки текста по частям
+        function loadTextChunk() {
+            if (isLoading) return;
+            isLoading = true;
+            
+            fetch(files[currentFileIndex])  // Загружаем текущий файл
+                .then(response => response.text())
+                .then(data => {
+                    // Разделим текст на части
+                    let chunk = data.slice(offset, offset + CHUNK_SIZE);
+                    offset += CHUNK_SIZE;
+
+                    // Применяем регулярку только к загруженной части
+                    const regex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\+\d{2}:\d{2}|\-?\d{2}:\d{2})?/g;
+                    chunk = chunk.replace(regex, (match) => {
+                        return `<span class="highlighted">${match}</span>`;
+                    });
+
+                    // Добавляем новую часть в контейнер
+                    document.getElementById('text-container').innerHTML += chunk;
+
+                    // Если есть еще текст, продолжаем загружать
+                    if (offset < data.length) {
+                        isLoading = false;
+                    } else {
+                        isLoading = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    isLoading = false;
+                });
+        }
+
+        // Функция, которая отслеживает прокрутку
+        function onScroll() {
+            const scrollContainer = document.getElementById('scroll-container');
+            const scrollTop = scrollContainer.scrollTop;
+            const scrollHeight = scrollContainer.scrollHeight;
+            const clientHeight = scrollContainer.clientHeight;
+
+            // Если мы находимся внизу, загружаем новый текст
+            if (scrollTop + clientHeight >= scrollHeight - 100) {
+                loadTextChunk();
+            }
+        }
+
+        // Функция для обновления имени файла в UI
+        function updateFileName() {
+            document.getElementById('file-name').textContent = files[currentFileIndex];
+        }
+
+        // Функция для переключения на предыдущий файл
+        function prevFile() {
+            if (currentFileIndex > 0) {
+                currentFileIndex--;
+                offset = 0;
+                document.getElementById('text-container').innerHTML = files[currentFileIndex] + '...\n\n';
+                loadTextChunk();
+                updateFileName();
+            }
+        }
+
+        // Функция для переключения на следующий файл
+        function nextFile() {
+            if (currentFileIndex < files.length - 1) {
+                currentFileIndex++;
+                offset = 0;
+                document.getElementById('text-container').innerHTML = files[currentFileIndex] + '...\n\n';
+                loadTextChunk();
+                updateFileName();
+            }
+        }
+
+        // Добавляем обработчики событий для кнопок
+        document.getElementById('prevBtn').addEventListener('click', prevFile);
+        document.getElementById('nextBtn').addEventListener('click', nextFile);
+
+        // Добавляем обработчик события прокрутки
+        document.getElementById('scroll-container').addEventListener('scroll', onScroll);
+
+        // Запускаем первую загрузку при старте
+        loadTextChunk();
+    </script>
+    <script>
+        // Функция для перезапуска анимации с направлением слева направо
+        function restartAnimationLeftToRight() {
+            const textContainer = document.getElementById('scroll-container');
+            
+            // Сброс анимации
+            textContainer.style.animation = 'none'; 
+            
+            setTimeout(() => {
+                textContainer.style.animation = ''; // Сбросим inline-стили
+                textContainer.offsetHeight; // Принудительная перерисовка элемента
+                textContainer.style.animation = 'appearLeftToRight 1s forwards'; // Применим анимацию слева направо
+            }, 10);
+        }
+
+        // Функция для перезапуска анимации с направлением справа налево
+        function restartAnimationRightToLeft() {
+            const textContainer = document.getElementById('scroll-container');
+            
+            // Сброс анимации
+            textContainer.style.animation = 'none'; 
+            
+            setTimeout(() => {
+                textContainer.style.animation = ''; // Сбросим inline-стили
+                textContainer.offsetHeight; // Принудительная перерисовка элемента
+                textContainer.style.animation = 'appearRightToLeft 1s forwards'; // Применим анимацию справа налево
+            }, 10);
+        }
+
+        // Обработчики кнопок
+        document.getElementById('prevBtn').addEventListener('click', restartAnimationLeftToRight);
+        document.getElementById('nextBtn').addEventListener('click', restartAnimationRightToLeft);
+
+
+    </script>
+     <script>
+    const scrollContainer = document.getElementById('scroll-container');
+    const autoScrollButton = document.getElementById('auto-scroll-btn');
+
+    // Переменные для управления анимацией прокрутки
+    const scrollSpeed = 0.5;
+    let isScrolling = false; // Состояние прокрутки
+    let isAutoScrolling = false; // Флаг для авто-прокрутки
+
+    // Функция для плавной прокрутки вниз
+    function smoothScroll() {
+        if (!isAutoScrolling) return; // Если авто-прокрутка отключена, выходим
+
+        // Получаем текущую позицию прокрутки
+        const scrollPosition = scrollContainer.scrollTop;
+
+        // Вычисляем новую позицию
+        const newPosition = scrollPosition + scrollSpeed;
+
+        // Прокручиваем вниз
+        scrollContainer.scrollTop = newPosition;
+
+        // Если прокрутка ещё не достигла конца, продолжаем прокручивать
+        if (scrollPosition + scrollContainer.clientHeight < scrollContainer.scrollHeight) {
+            isScrolling = true;
+            requestAnimationFrame(smoothScroll);
+        } else {
+            isAutoScrolling = false; // Останавливаем авто-прокрутку, если достигли конца
+        }
+    }
+
+    // Обработчик кнопки для включения/выключения авто-прокрутки
+    autoScrollButton.addEventListener('click', function() {
+        if (isAutoScrolling) {
+            isAutoScrolling = false; // Останавливаем авто-прокрутку
+            autoScrollButton.textContent = 'Авто-прокрутка';
+        } else {
+            isAutoScrolling = true; // Включаем авто-прокрутку
+            autoScrollButton.textContent = 'Остановить прокрутку';
+            smoothScroll(); // Запускаем плавную прокрутку
+        }
+    });
+</script>
 </body>
 </html>
-
