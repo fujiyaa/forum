@@ -161,6 +161,40 @@
     </div>
 
     <script>
+        // Функция для перезапуска анимации с направлением слева направо
+        function restartAnimationLeftToRight() {
+            const textContainer = document.getElementById('scroll-container');
+            
+            // Сброс анимации
+            textContainer.style.animation = 'none'; 
+            
+            setTimeout(() => {
+                textContainer.style.animation = ''; // Сбросим inline-стили
+                textContainer.offsetHeight; // Принудительная перерисовка элемента
+                textContainer.style.animation = 'appearLeftToRight 1s forwards'; // Применим анимацию слева направо
+            }, 10);
+        }
+
+        // Функция для перезапуска анимации с направлением справа налево
+        function restartAnimationRightToLeft() {
+            const textContainer = document.getElementById('scroll-container');
+            
+            // Сброс анимации
+            textContainer.style.animation = 'none'; 
+            
+            setTimeout(() => {
+                textContainer.style.animation = ''; // Сбросим inline-стили
+                textContainer.offsetHeight; // Принудительная перерисовка элемента
+                textContainer.style.animation = 'appearRightToLeft 1s forwards'; // Применим анимацию справа налево
+            }, 10);
+        }
+
+        // Обработчики кнопок
+        document.getElementById('prevBtn').addEventListener('click', restartAnimationLeftToRight);
+        document.getElementById('nextBtn').addEventListener('click', restartAnimationRightToLeft);
+    </script>
+
+    <script>
         const CHUNK_SIZE = 1000; // Размер части, которую будем загружать за один раз
         let offset = 0; // Смещение в файле
         let isLoading = false; // Проверка, не загружается ли файл в данный момент
@@ -191,52 +225,62 @@
         let currentFileIndex = 0; // Индекс текущего файла
 
         // Функция подгрузки текста по частям
-        function loadTextChunk() {
-            if (isLoading) return;
-            isLoading = true;
-            
-            fetch(files[currentFileIndex])  // Загружаем текущий файл
-                .then(response => response.text())
-                .then(data => {
-                    // Разделим текст на части
-                    let chunk = data.slice(offset, offset + CHUNK_SIZE);
-                    offset += CHUNK_SIZE;
+function loadTextChunk() {
+    if (isLoading) return;
+    isLoading = true;
 
-                    // Применяем регулярку только к загруженной части
-                    const regex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\+\d{2}:\d{2}|\-?\d{2}:\d{2})?/g;
-                    chunk = chunk.replace(regex, (match) => {
-                        return `<span class="highlighted">${match}</span>`;
-                    });
-
-                    // Добавляем новую часть в контейнер
-                    document.getElementById('text-container').innerHTML += chunk;
-
-                    // Если есть еще текст, продолжаем загружать
-                    if (offset < data.length) {
-                        isLoading = false;
-                    } else {
-                        isLoading = false;
-                    }
-                })
-                .catch(error => {
-                    console.error('Ошибка:', error);
-                    isLoading = false;
-                });
-        }
-
-        // Функция, которая отслеживает прокрутку
-        function onScroll() {
-            const scrollContainer = document.getElementById('scroll-container');
-            const scrollTop = scrollContainer.scrollTop;
-            const scrollHeight = scrollContainer.scrollHeight;
-            const clientHeight = scrollContainer.clientHeight;
-
-            // Если мы находимся внизу, загружаем новый текст
-            if (scrollTop + clientHeight >= scrollHeight - 100) {
-                loadTextChunk();
+    fetch(files[currentFileIndex])  // Загружаем текущий файл
+        .then(response => response.text())
+        .then(data => {
+            let chunk = data.slice(offset, offset + CHUNK_SIZE);
+            if (chunk.length === 0) {
+                isLoading = false; // Больше нечего загружать
+                return;
             }
-        }
 
+            offset += CHUNK_SIZE;
+
+            // Обрабатываем дату, выделяя ее в тексте
+            const regex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\+\d{2}:\d{2}|\-?\d{2}:\d{2})?/g;
+            chunk = chunk.replace(regex, (match) => `<span class="highlighted">${match}</span>`);
+
+            // Добавляем новую часть в контейнер
+            document.getElementById('text-container').innerHTML += chunk;
+            isLoading = false;
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки:', error);
+            isLoading = false;
+        });
+}
+
+// Функция, которая отслеживает прокрутку
+function onScroll() {
+    const scrollContainer = document.getElementById('scroll-container');
+    const scrollTop = scrollContainer.scrollTop;
+    const scrollHeight = scrollContainer.scrollHeight;
+    const clientHeight = scrollContainer.clientHeight;
+
+    // Если пользователь достиг конца контейнера, загружаем новый текст
+    if (scrollTop + clientHeight >= scrollHeight - 100) {
+        loadTextChunk();
+    }
+}
+
+// Функция для загрузки при попытке прокрутки, если текста не хватает
+function onAttemptScroll(event) {
+    const scrollContainer = document.getElementById('scroll-container');
+    
+    // Проверяем, что уже не загружено все содержимое
+    if (scrollContainer.scrollHeight <= scrollContainer.clientHeight + 50) {
+        loadTextChunk();
+    }
+}
+
+// Добавляем обработчики событий
+document.getElementById('scroll-container').addEventListener('scroll', onScroll);
+document.getElementById('scroll-container').addEventListener('wheel', onAttemptScroll);
+document.getElementById('scroll-container').addEventListener('touchmove', onAttemptScroll);
         // Функция для обновления имени файла в UI
         function updateFileName() {
             document.getElementById('file-name').textContent = files[currentFileIndex];
@@ -274,83 +318,6 @@
         // Запускаем первую загрузку при старте
         loadTextChunk();
     </script>
-    <script>
-        // Функция для перезапуска анимации с направлением слева направо
-        function restartAnimationLeftToRight() {
-            const textContainer = document.getElementById('scroll-container');
-            
-            // Сброс анимации
-            textContainer.style.animation = 'none'; 
-            
-            setTimeout(() => {
-                textContainer.style.animation = ''; // Сбросим inline-стили
-                textContainer.offsetHeight; // Принудительная перерисовка элемента
-                textContainer.style.animation = 'appearLeftToRight 1s forwards'; // Применим анимацию слева направо
-            }, 10);
-        }
-
-        // Функция для перезапуска анимации с направлением справа налево
-        function restartAnimationRightToLeft() {
-            const textContainer = document.getElementById('scroll-container');
-            
-            // Сброс анимации
-            textContainer.style.animation = 'none'; 
-            
-            setTimeout(() => {
-                textContainer.style.animation = ''; // Сбросим inline-стили
-                textContainer.offsetHeight; // Принудительная перерисовка элемента
-                textContainer.style.animation = 'appearRightToLeft 1s forwards'; // Применим анимацию справа налево
-            }, 10);
-        }
-
-        // Обработчики кнопок
-        document.getElementById('prevBtn').addEventListener('click', restartAnimationLeftToRight);
-        document.getElementById('nextBtn').addEventListener('click', restartAnimationRightToLeft);
-
-
-    </script>
-     <script>
-    const scrollContainer = document.getElementById('scroll-container');
-    const autoScrollButton = document.getElementById('auto-scroll-btn');
-
-    // Переменные для управления анимацией прокрутки
-    const scrollSpeed = 0.5;
-    let isScrolling = false; // Состояние прокрутки
-    let isAutoScrolling = false; // Флаг для авто-прокрутки
-
-    // Функция для плавной прокрутки вниз
-    function smoothScroll() {
-        if (!isAutoScrolling) return; // Если авто-прокрутка отключена, выходим
-
-        // Получаем текущую позицию прокрутки
-        const scrollPosition = scrollContainer.scrollTop;
-
-        // Вычисляем новую позицию
-        const newPosition = scrollPosition + scrollSpeed;
-
-        // Прокручиваем вниз
-        scrollContainer.scrollTop = newPosition;
-
-        // Если прокрутка ещё не достигла конца, продолжаем прокручивать
-        if (scrollPosition + scrollContainer.clientHeight < scrollContainer.scrollHeight) {
-            isScrolling = true;
-            requestAnimationFrame(smoothScroll);
-        } else {
-            isAutoScrolling = false; // Останавливаем авто-прокрутку, если достигли конца
-        }
-    }
-
-    // Обработчик кнопки для включения/выключения авто-прокрутки
-    autoScrollButton.addEventListener('click', function() {
-        if (isAutoScrolling) {
-            isAutoScrolling = false; // Останавливаем авто-прокрутку
-            autoScrollButton.textContent = 'Авто-прокрутка';
-        } else {
-            isAutoScrolling = true; // Включаем авто-прокрутку
-            autoScrollButton.textContent = 'Остановить прокрутку';
-            smoothScroll(); // Запускаем плавную прокрутку
-        }
-    });
-</script>
+    
 </body>
 </html>
