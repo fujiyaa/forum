@@ -35,6 +35,21 @@
             margin-bottom: 20px;
         }
 
+        .scroll-container {
+            width: 100%;
+            max-width: 700px;
+            height: calc(100vh - 100px);
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            position: relative;
+            mask-image: linear-gradient(to bottom, transparent, white 10%, white 90%, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, transparent, white 10%, white 90%, transparent);
+            scroll-behavior: smooth;
+            padding-bottom: 100px; 
+        }
+
+
         .text {
             font-size: 1.5rem;
             line-height: 2rem;
@@ -84,12 +99,17 @@
         .controls {
             display: flex;
             justify-content: space-between;
-            width:auto;
+            align-items: center;
+            width: 100%;
             max-width: 600px;
-            margin-top: 0px;
-            font-size: 1.5rem;
-            padding: 5px;
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px;
+            border-radius: 10px;
         }
+
         .controls button {
             background-color: transparent;
             color: #727272;
@@ -100,7 +120,7 @@
             font-size: 2rem;
         }
         .controls button {
-            transition: background-color 0.5s ease; /* Добавляем плавную анимацию для фона */
+            transition: background-color 0.5s ease;
         }
         .controls button:hover {
             background-color: rgb(72, 72, 72);
@@ -111,10 +131,7 @@
             font-size: 1.4rem;
             align-self: center;            
             padding: 10px 14px;
-        }
-        
-    </style>
-    <style>
+        }        
         body {
         margin: 0;
         height: 100vh;
@@ -143,16 +160,55 @@
             background-position: 0% 50%;
         }
         }
+        .notification {
+            position: fixed;
+            bottom: 60px; /* Чтобы не налезало на панель кнопок */
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--popup-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 1000; /* Чтобы перекрывало другие элементы */
+        }
+        @keyframes flashBlue {
+            0% { background: #ffffff; } /* Ярко-синий */
+            50% { background: rgba(255, 255, 255, 0.9); } /* Быстро возвращается к нормальному цвету */
+            100% { background: var(--popup-color);}
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+            animation: flashBlue 0.3s ease-in-out, fadeOut 1.0s ease-in-out 0.5s forwards;
+        }
+
+        :root{
+            --popup-color: #82a3c0;
+        }
 
     </style>
-     
 </head>
 <body>
+    <div class="notification" id="notification" ></div>
+    <div class="notification" id="notification" ></div>
     <div class="scroll-container" id="scroll-container">
+        
         <div id="text-container" class="text">оффтоп - часть 1 (начало).txt...
 
         </div>
     </div>
+
 
     <div class="controls">
         <button id="prevBtn">◀</button>
@@ -161,45 +217,39 @@
     </div>
 
     <script>
-        // Функция для перезапуска анимации с направлением слева направо
         function restartAnimationLeftToRight() {
             const textContainer = document.getElementById('scroll-container');
             
-            // Сброс анимации
             textContainer.style.animation = 'none'; 
             
             setTimeout(() => {
-                textContainer.style.animation = ''; // Сбросим inline-стили
-                textContainer.offsetHeight; // Принудительная перерисовка элемента
-                textContainer.style.animation = 'appearLeftToRight 1s forwards'; // Применим анимацию слева направо
+                textContainer.style.animation = ''; 
+                textContainer.offsetHeight; 
+                textContainer.style.animation = 'appearLeftToRight 1s forwards'; 
             }, 10);
         }
 
-        // Функция для перезапуска анимации с направлением справа налево
         function restartAnimationRightToLeft() {
             const textContainer = document.getElementById('scroll-container');
             
-            // Сброс анимации
             textContainer.style.animation = 'none'; 
             
             setTimeout(() => {
-                textContainer.style.animation = ''; // Сбросим inline-стили
-                textContainer.offsetHeight; // Принудительная перерисовка элемента
-                textContainer.style.animation = 'appearRightToLeft 1s forwards'; // Применим анимацию справа налево
+                textContainer.style.animation = ''; 
+                textContainer.offsetHeight; 
+                textContainer.style.animation = 'appearRightToLeft 1s forwards'; 
             }, 10);
         }
 
-        // Обработчики кнопок
         document.getElementById('prevBtn').addEventListener('click', restartAnimationLeftToRight);
         document.getElementById('nextBtn').addEventListener('click', restartAnimationRightToLeft);
     </script>
 
     <script>
-        const CHUNK_SIZE = 1000; // Размер части, которую будем загружать за один раз
-        let offset = 0; // Смещение в файле
-        let isLoading = false; // Проверка, не загружается ли файл в данный момент
+        const CHUNK_SIZE = 1000; 
+        let offset = 0; 
+        let isLoading = false; 
 
-        // Список файлов
         const files = [
             'оффтоп - часть 1 (начало).txt',
             'оффтоп - часть 2.txt',
@@ -222,29 +272,24 @@
             'оффтоп - часть 17.txt',
             'оффтоп - часть 18 (последняя).txt'
         ];
-        let currentFileIndex = 0; // Индекс текущего файла
-
-        // Функция подгрузки текста по частям
+        let currentFileIndex = 0; 
 function loadTextChunk() {
     if (isLoading) return;
     isLoading = true;
 
-    fetch(files[currentFileIndex])  // Загружаем текущий файл
+    fetch(files[currentFileIndex])  
         .then(response => response.text())
         .then(data => {
             let chunk = data.slice(offset, offset + CHUNK_SIZE);
             if (chunk.length === 0) {
-                isLoading = false; // Больше нечего загружать
+                isLoading = false; 
                 return;
             }
-
             offset += CHUNK_SIZE;
 
-            // Обрабатываем дату, выделяя ее в тексте
             const regex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\+\d{2}:\d{2}|\-?\d{2}:\d{2})?/g;
             chunk = chunk.replace(regex, (match) => `<span class="highlighted">${match}</span>`);
 
-            // Добавляем новую часть в контейнер
             document.getElementById('text-container').innerHTML += chunk;
             isLoading = false;
         })
@@ -253,40 +298,77 @@ function loadTextChunk() {
             isLoading = false;
         });
 }
+function loadFirstChunk(callback) {
+    fetch(files[currentFileIndex])  
+        .then(response => response.text())
+        .then(data => {
+            let chunk = data.slice(0, CHUNK_SIZE); 
 
-// Функция, которая отслеживает прокрутку
+            const regex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\+\d{2}:\d{2}|\-?\d{2}:\d{2})?/g;
+            const match = chunk.match(regex);
+            const firstDate = match ? match[0] : "Дата не найдена";
+
+            chunk = chunk.replace(regex, (match) => `<span class="highlighted">${match}</span>`);
+
+            document.getElementById('text-container').innerHTML = chunk;
+
+            if (callback) callback(firstDate);
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки:', error);
+        });
+}
+
+function prevFile() {
+    if (currentFileIndex > 0) {
+        currentFileIndex--;
+        offset = 0;
+        updateFileName();
+
+        loadFirstChunk((firstDate) => {
+            showNotification(`Предыдущий файл: ${firstDate}`);
+        });
+    }
+}
+
+function nextFile() {
+    if (currentFileIndex < files.length - 1) {
+        currentFileIndex++;
+        offset = 0;
+        updateFileName();
+
+        loadFirstChunk((firstDate) => {
+            showNotification(`Следующий файл: ${firstDate}`);
+        });
+    }
+}
+
 function onScroll() {
     const scrollContainer = document.getElementById('scroll-container');
     const scrollTop = scrollContainer.scrollTop;
     const scrollHeight = scrollContainer.scrollHeight;
     const clientHeight = scrollContainer.clientHeight;
 
-    // Если пользователь достиг конца контейнера, загружаем новый текст
     if (scrollTop + clientHeight >= scrollHeight - 100) {
         loadTextChunk();
     }
 }
 
-// Функция для загрузки при попытке прокрутки, если текста не хватает
 function onAttemptScroll(event) {
     const scrollContainer = document.getElementById('scroll-container');
     
-    // Проверяем, что уже не загружено все содержимое
     if (scrollContainer.scrollHeight <= scrollContainer.clientHeight + 50) {
         loadTextChunk();
     }
 }
 
-// Добавляем обработчики событий
 document.getElementById('scroll-container').addEventListener('scroll', onScroll);
 document.getElementById('scroll-container').addEventListener('wheel', onAttemptScroll);
 document.getElementById('scroll-container').addEventListener('touchmove', onAttemptScroll);
-        // Функция для обновления имени файла в UI
         function updateFileName() {
             document.getElementById('file-name').textContent = files[currentFileIndex];
         }
 
-        // Функция для переключения на предыдущий файл
         function prevFile() {
             if (currentFileIndex > 0) {
                 currentFileIndex--;
@@ -294,10 +376,16 @@ document.getElementById('scroll-container').addEventListener('touchmove', onAtte
                 document.getElementById('text-container').innerHTML = files[currentFileIndex] + '...\n\n';
                 loadTextChunk();
                 updateFileName();
+
+                loadFirstChunk((firstDate) => {
+                showNotification(`${firstDate}`);
+
+                loadTextChunk();
+                updateFileName();
+        });
             }
         }
 
-        // Функция для переключения на следующий файл
         function nextFile() {
             if (currentFileIndex < files.length - 1) {
                 currentFileIndex++;
@@ -305,19 +393,39 @@ document.getElementById('scroll-container').addEventListener('touchmove', onAtte
                 document.getElementById('text-container').innerHTML = files[currentFileIndex] + '...\n\n';
                 loadTextChunk();
                 updateFileName();
+
+                loadFirstChunk((firstDate) => {
+                showNotification(`${firstDate}`);
+
+                loadTextChunk();
+                updateFileName();
+        });
             }
         }
 
-        // Добавляем обработчики событий для кнопок
         document.getElementById('prevBtn').addEventListener('click', prevFile);
         document.getElementById('nextBtn').addEventListener('click', nextFile);
-
-        // Добавляем обработчик события прокрутки
         document.getElementById('scroll-container').addEventListener('scroll', onScroll);
 
-        // Запускаем первую загрузку при старте
         loadTextChunk();
-    </script>
+
+  
+
+
     
+        function showNotification(text) {
+            const notification = document.getElementById('notification');
+            
+            // Сброс анимации
+            notification.classList.remove('show');
+            
+            // Ждем, пока класс будет удален, затем добавляем снова для повторного запуска анимации
+            setTimeout(() => {
+                notification.textContent = text;
+                notification.classList.add('show');
+            }, 50); // Задержка 50ms для полного сброса анимации
+        }
+
+    </script>
 </body>
 </html>
