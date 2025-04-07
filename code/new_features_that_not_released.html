@@ -1,0 +1,533 @@
+
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>forum\offtopic\zen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #121212;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            flex-direction: column;
+        }
+        .scroll-container {
+            width: 100%;
+            max-width: 700px;
+            height: 100vh;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            position: relative;
+            mask-image: linear-gradient(to bottom, transparent, white 10%, white 90%, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, transparent, white 10%, white 90%, transparent);
+            scroll-behavior: smooth;
+            margin-bottom: 20px;
+        }
+
+        .scroll-container {
+            width: 100%;
+            max-width: 700px;
+            height: calc(100vh - 100px);
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            position: relative;
+            mask-image: linear-gradient(to bottom, transparent, white 10%, white 90%, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, transparent, white 10%, white 90%, transparent);
+            scroll-behavior: smooth;
+            padding-bottom: 100px; 
+        }
+
+
+        .text {
+            font-size: 1.5rem;
+            line-height: 2rem;
+            text-align: left;
+            white-space: pre-line;
+            padding: 20px;
+            opacity: 0;
+            animation: appearLeftToRight 1s forwards;
+        }
+
+        @keyframes appearLeftToRight {
+            0% {
+                opacity: 0;
+                transform: translateX(-100%);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes appearRightToLeft {
+            0% {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+        .text {
+            font-size: 1.5rem;
+            line-height: 2rem;
+            text-align: left;
+            white-space: pre-line;
+            padding: 20px;
+        }
+        .highlighted {
+          color: #969696;
+          font-size: small;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .controls button {
+            background-color: transparent;
+            color: #727272;
+            border-radius: 10px 10px 10px 10px;
+            border: none;
+            padding: 1px 7px;
+            cursor: pointer;
+            font-size: 2rem;
+        }
+        .controls button {
+            transition: background-color 0.5s ease;
+        }
+        .controls button:hover {
+            background-color: rgb(72, 72, 72);
+            color: rgb(170, 170, 170);
+        }
+        .file-name {
+            color: rgb(72, 72, 72);
+            font-size: 1.4rem;
+            align-self: center;            
+            padding: 10px 14px;
+        }        
+        body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(45deg, #2d404e, #291a21, #554f4d, #1a1a1a, #3d3d3d);
+        background-size: 600% 600%;
+        animation: gradientAnimation 80s ease infinite;
+        }
+
+        @keyframes gradientAnimation {
+        0% {
+            background-position: 0% 50%;
+        }
+        25% {
+            background-position: 100% 50%;
+        }
+        50% {
+            background-position: 100% 0%;
+        }
+        75% {
+            background-position: 0% 0%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+        }
+        .notification {
+            position: fixed;
+            bottom: 60px; 
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--popup-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 1000;
+        }
+        @keyframes flashBlue {
+            0% { background: #ffffff; } 
+            50% { background: rgba(255, 255, 255, 0.9); } 
+            100% { background: var(--popup-color);}
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+            animation: flashBlue 0.3s ease-in-out, fadeOut 2.0s ease-in-out 0.5s forwards;
+        }
+
+        :root{
+            --popup-color: #82a3c0;
+        }
+
+        .find-container {
+            position: fixed;
+            bottom: 140px; 
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            
+            z-index: 1000;
+            background: var(--popup-color);
+            border-radius: 10px;
+        }
+
+        .find-container input {
+            flex: 1;
+            padding: 5px;            
+            background: transparent;
+            color:  rgb(255, 255, 255);
+            border: none;
+            outline: none;
+            font-size: 1.4rem;
+        }
+
+        .find-container button {
+            
+            font-size: 1.4rem;
+            background: transparent;
+            color:  rgb(255, 255, 255);
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification" ></div>
+    <div id="findfield" class="find-container">
+        <input type="text" id="searchInput" placeholder="Введите запрос...">
+        <button id="searchBtn">🔍</button>
+    </div>
+    <div class="scroll-container" id="scroll-container">
+        
+        <div id="text-container" class="text">оффтоп - часть 1 (начало).txt...
+
+        </div>
+    </div>
+
+
+    <div class="controls">
+        <span id="file-name" class="file-name">оффтоп - часть 1 (начало).txt</span>
+        <button id="prevBtn">◀</button>
+        <button id="findBtn">🔍</button>
+        <button id="nextBtn">▶</button>        
+    </div>
+
+    <script>
+        function restartAnimationLeftToRight() {
+            const textContainer = document.getElementById('scroll-container');
+            
+            textContainer.style.animation = 'none'; 
+            
+            setTimeout(() => {
+                textContainer.style.animation = ''; 
+                textContainer.offsetHeight; 
+                textContainer.style.animation = 'appearLeftToRight 1s forwards'; 
+            }, 10);
+        }
+
+        function restartAnimationRightToLeft() {
+            const textContainer = document.getElementById('scroll-container');
+            
+            textContainer.style.animation = 'none'; 
+            
+            setTimeout(() => {
+                textContainer.style.animation = ''; 
+                textContainer.offsetHeight; 
+                textContainer.style.animation = 'appearRightToLeft 1s forwards'; 
+            }, 10);
+        }
+
+        document.getElementById('prevBtn').addEventListener('click', restartAnimationLeftToRight);
+        document.getElementById('nextBtn').addEventListener('click', restartAnimationRightToLeft);
+    </script>
+
+    <script>
+        const CHUNK_SIZE = 1000; 
+        let offset = 0; 
+        let isLoading = false; 
+
+        const files = [
+            './/txt/оффтоп - часть 1 (начало).txt',
+            './/txt/оффтоп - часть 2.txt',
+            './/txt/оффтоп - часть 2 (спинофф).txt',
+            './/txt/оффтоп - часть 3.txt',
+            './/txt/оффтоп - часть 4.txt',
+            './/txt/оффтоп - часть 5.txt',
+            './/txt/оффтоп - часть 5 (спинофф).txt',
+            './/txt/оффтоп - часть 6.txt',
+            './/txt/оффтоп - часть 7.txt',
+            './/txt/оффтоп - часть 8.txt',
+            './/txt/оффтоп - часть 9.txt',
+            './/txt/оффтоп - часть 10.txt',
+            './/txt/оффтоп - часть 11.txt',
+            './/txt/оффтоп - часть 12.txt',
+            './/txt/оффтоп - часть 13.txt',
+            './/txt/оффтоп - часть 14.txt',
+            './/txt/оффтоп - часть 15.txt',
+            './/txt/оффтоп - часть 16.txt',
+            './/txt/оффтоп - часть 17.txt',
+            './/txt/оффтоп - часть 18 (последняя).txt'
+        ];
+        let currentFileIndex = 0; 
+function loadTextChunk() {
+    if (isLoading) return;
+    isLoading = true;
+
+    fetch(files[currentFileIndex])  
+        .then(response => response.text())
+        .then(data => {
+            let chunk = data.slice(offset, offset + CHUNK_SIZE);
+            if (chunk.length === 0) {
+                isLoading = false; 
+                return;
+            }
+            offset += CHUNK_SIZE;
+
+            const regex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\+\d{2}:\d{2}|\-?\d{2}:\d{2})?/g;
+            chunk = chunk.replace(regex, (match) => `<span class="highlighted">${match}</span>`);
+
+            document.getElementById('text-container').innerHTML += chunk;
+            isLoading = false;
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки:', error);
+            isLoading = false;
+        });
+}
+function loadFirstChunk(callback) {
+    fetch(files[currentFileIndex])  
+        .then(response => response.text())
+        .then(data => {
+            let chunk = data.slice(0, CHUNK_SIZE); 
+
+            const regex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\+\d{2}:\d{2}|\-?\d{2}:\d{2})?/g;
+            const match = chunk.match(regex);
+            const firstDate = match ? match[0] : "Дата не найдена";
+
+            chunk = chunk.replace(regex, (match) => `<span class="highlighted">${match}</span>`);
+
+            document.getElementById('text-container').innerHTML = chunk;
+
+            if (callback) callback(firstDate);
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки:', error);
+        });
+}
+
+function onScroll() {
+    const scrollContainer = document.getElementById('scroll-container');
+    const scrollTop = scrollContainer.scrollTop;
+    const scrollHeight = scrollContainer.scrollHeight;
+    const clientHeight = scrollContainer.clientHeight;
+
+    if (scrollTop + clientHeight >= scrollHeight - 100) {
+        loadTextChunk();
+    }
+}
+
+function onAttemptScroll(event) {
+    const scrollContainer = document.getElementById('scroll-container');
+    
+    if (scrollContainer.scrollHeight <= scrollContainer.clientHeight + 50) {
+        loadTextChunk();
+    }
+}
+
+document.getElementById('scroll-container').addEventListener('scroll', onScroll);
+document.getElementById('scroll-container').addEventListener('wheel', onAttemptScroll);
+document.getElementById('scroll-container').addEventListener('touchmove', onAttemptScroll);
+        function updateFileName() {
+            document.getElementById('file-name').textContent = files[currentFileIndex];
+        }
+
+        function prevFile() {
+            if (currentFileIndex > 0) {
+                currentFileIndex--;
+                offset = 0;
+                document.getElementById('text-container').innerHTML = files[currentFileIndex] + '...\n\n';
+                loadTextChunk();
+                updateFileName();
+
+                loadFirstChunk((firstDate) => {
+                showNotification(`${firstDate}`);
+
+                loadTextChunk();
+                updateFileName();
+        });
+            }
+        }
+
+        function nextFile() {
+            if (currentFileIndex < files.length - 1) {
+                currentFileIndex++;
+                offset = 0;
+                document.getElementById('text-container').innerHTML = files[currentFileIndex] + '...\n\n';
+                loadTextChunk();
+                updateFileName();
+
+                loadFirstChunk((firstDate) => {
+                showNotification(`${firstDate}`);
+
+                loadTextChunk();
+                updateFileName();
+        });
+            }
+        }
+
+        document.getElementById('prevBtn').addEventListener('click', prevFile);
+        document.getElementById('nextBtn').addEventListener('click', nextFile);
+        document.getElementById('scroll-container').addEventListener('scroll', onScroll);
+
+        loadTextChunk();
+
+  
+
+
+    
+        function showNotification(text) {
+            const notification = document.getElementById('notification');
+            
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.textContent = text;
+                notification.classList.add('show');
+            }, 50); 
+        }
+        
+        const findBtn = document.getElementById('findBtn');
+        const findfield = document.getElementById('findfield');
+
+        findBtn.addEventListener('click', () => {
+            if (findfield.style.display === 'none' || findfield.style.display === '') {
+                findfield.style.display = 'flex';
+                findBtn.textContent = '✖';
+                showNotification('режим поиска') 
+            } else {
+                findfield.style.display = 'none';
+                findBtn.textContent = '🔍';
+            }
+        });
+
+        let searchResults = [];
+let currentSearchIndex = -1;
+
+function searchInFiles(query) {
+    searchResults = [];
+    currentSearchIndex = -1;
+    let promises = files.map((file, index) => {
+        return fetch(file)
+            .then(response => response.text())
+            .then(text => {
+                let regex = new RegExp(query, 'gi');
+                let matches = [...text.matchAll(regex)];
+                matches.forEach(match => {
+                    searchResults.push({ fileIndex: index, position: match.index });
+                });
+            });
+    });
+    
+    Promise.all(promises).then(() => {
+        showNotification(`Найдено совпадений: ${searchResults.length}`);
+        if (searchResults.length > 0) {
+            currentSearchIndex = 0;
+            jumpToSearchResult();
+        }
+    });
+}
+
+function jumpToSearchResult() {
+    if (currentSearchIndex >= 0 && currentSearchIndex < searchResults.length) {
+        let result = searchResults[currentSearchIndex];
+        currentFileIndex = result.fileIndex;
+        offset = result.position;
+        
+        updateFileName();
+        fetch(files[currentFileIndex])
+            .then(response => response.text())
+            .then(data => {
+                let before = data.slice(Math.max(0, offset - 500), offset);
+                let matchText = data.slice(offset, offset + 100);
+                let after = data.slice(offset + 100, offset + 600);
+                
+                document.getElementById('text-container').innerHTML = `${before}<span class='highlighted'>${matchText}</span>${after}`;
+            });
+    }
+}
+
+function nextSearchResult() {
+    if (searchResults.length > 0) {
+        currentSearchIndex = (currentSearchIndex + 1) % searchResults.length;
+        jumpToSearchResult();
+    }
+}
+
+function prevSearchResult() {
+    if (searchResults.length > 0) {
+        currentSearchIndex = (currentSearchIndex - 1 + searchResults.length) % searchResults.length;
+        jumpToSearchResult();
+    }
+}
+
+document.getElementById('searchBtn').addEventListener('click', () => {
+    let query = document.getElementById('searchInput').value.trim();
+    if (query) {
+        searchInFiles(query);
+    }
+});
+
+document.getElementById('prevBtn').addEventListener('click', prevSearchResult);
+document.getElementById('nextBtn').addEventListener('click', nextSearchResult);
+
+
+    </script>
+</body>
+</html>

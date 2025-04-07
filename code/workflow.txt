@@ -1,0 +1,93 @@
+
+
+0. Start from here <--
+
+
+--- data collection ---
+
+
+1. Open in editor offtop.py
+
+2. Put in start_from_post number (approx.)
+
+3. Run offtop.py
+
+
+--- editing txts ---
+
+
+4. Open folder with raw.txt
+
+5. Open file in text editor
+
+6. Locate old txt file 
+
+7. Copy last message contents
+
+8. In new txt ctrl+f and put in text from task 7
+
+9. If nothing, go back to task 2 and put lower number
+
+10. Select everything after that message and delete
+
+11. Go to new txt, copy everything
+
+12. Go to old file, paste
+
+13. Save and close text editor
+
+14. Run process_txts.py
+
+15. Run stats_extended_montly.py
+
+
+--- spreadsheets ---
+
+
+16. Open output_m.csv, copy as text
+
+17. Put copied data on 4th spreadsheets list
+
+18. Open output.csv, copy as text except 1st row
+
+19. Put copied data on 2nd spreadsheets list
+
+
+--- editing txts ---
+
+
+20. Open old text.txt (in VS) and new text.txt
+
+21. Copy first message contents
+
+22. In old txt ctrl+f and put in text from task 17
+
+23. Select everything after that message and delete
+
+24. Go to new txt, copy everything
+
+25. Go to old file, paste
+
+26. Copy text.txt from VS folder to 'master', replace -> yes
+
+27. Run process_txts.py
+
+
+--- spreadsheets ---
+
+
+28. Open output.csv, copy as text except 1st row
+
+29. Put copied data on 2nd spreadsheets list
+
+
+--- archive ---
+
+
+30. backup text.txt from 'master' folder
+
+
+--- pics ---
+
+
+Run stats_extended_daily.py, then configure stats_daily.py and run it.
